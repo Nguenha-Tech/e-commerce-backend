@@ -44,12 +44,12 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
         ],
         censor: '[REDACTED]',
       },
-      ...(env.NODE_ENV === 'development' ? { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' } } } : {}),
+      ...(env.NODE_ENV === 'development' && !env.isServerless ? { transport: { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss', ignore: 'pid,hostname' } } } : {}),
     },
     // Correlation ID: reaproveita X-Request-Id do proxy/cliente ou gera um UUID.
     requestIdHeader: 'x-request-id',
     genReqId: () => randomUUID(),
-    trustProxy: env.isProd,
+    trustProxy: env.isProd || env.isServerless,
     bodyLimit: 1024 * 1024,
     ...opts,
   }).withTypeProvider<ZodTypeProvider>();

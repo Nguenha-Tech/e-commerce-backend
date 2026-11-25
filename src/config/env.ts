@@ -78,13 +78,23 @@ const schema = z
     }
   });
 
-const parsed = schema.safeParse(process.env);
+/** A correr numa plataforma serverless (Vercel): sem processo longo nem disco gravável. */
+const isServerless = Boolean(process.env.VERCEL);
+
+// Na Vercel, NODE_ENV não definido significa produção (nunca usar a configuração de dev).
+const parsed = schema.safeParse(isServerless ? { NODE_ENV: 'production', ...process.env } : process.env);
+
+/** Lista só nomes de variáveis e motivos (nunca valores). */
+export class EnvConfigError extends Error {
+  constructor(readonly issues: string[]) {
+    super(`Invalid environment configuration:\n${issues.map((i) => `  - ${i}`).join('\n')}`);
+    this.name = 'EnvConfigError';
+  }
+}
 
 if (!parsed.success) {
-  // Não usar logger aqui: a configuração ainda não existe.
-  console.error('❌ Invalid environment configuration:');
-  for (const issue of parsed.error.issues) console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
-  process.exit(1);
+  // Lançar em vez de process.exit: o servidor termina na mesma, e na Vercel o erro fica visível nos logs.
+  throw new EnvConfigError(parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`));
 }
 
 const raw = parsed.data;
@@ -94,6 +104,12 @@ export const env = {
   ...raw,
   isProd,
   isTest: raw.NODE_ENV === 'test',
+  isServerless,
+  // Disco da Vercel é só de leitura exceto /tmp (efémero: usar STORAGE_DRIVER=cloudinary).
+  STORAGE_LOCAL_DIR: isServerless && !process.env.STORAGE_LOCAL_DIR ? '/tmp/uploads' : raw.STORAGE_LOCAL_DIR,
+  // Sem processo longo, setInterval não corre: os jobs são disparados pelo cron da Vercel.
+  JOBS_ENABLED: raw.JOBS_ENABLED && !isServerless,
+  CRON_SECRET: process.env.CRON_SECRET,
   COOKIE_SECURE: raw.COOKIE_SECURE ?? isProd,
   DOCS_ENABLED: raw.DOCS_ENABLED ?? !isProd,
   corsOrigins: raw.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean),

@@ -67,6 +67,35 @@ expirado, stock insuficiente, acesso sem permissão e tentativa de elevação de
 | `npm run prisma:deploy` | Aplicar migrações (produção) |
 | `npm run db:seed` | Dados base |
 
+## Deploy na Vercel
+
+O projeto corre na Vercel como função serverless: `api/index.ts` constrói a app Fastify uma vez
+por instância e `vercel.json` reescreve todos os caminhos (`/api/v1/*`, `/health`, `/docs`) para ela.
+
+Variáveis de ambiente a definir no projeto da Vercel (Settings → Environment Variables):
+
+| Variável | Valor |
+|---|---|
+| `DATABASE_URL` | PostgreSQL acessível pela internet (Neon, Supabase, Railway…), **não** `localhost` |
+| `JWT_SECRET`, `COOKIE_SECRET` | ≥ 32 caracteres cada (`node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`) |
+| `CORS_ORIGINS` | Origens do frontend, separadas por vírgula (ex.: `http://localhost:5173,https://loja.vercel.app`) |
+| `FRONTEND_URL` | URL do frontend (links nos emails) |
+| `API_URL` | `https://<projeto>.vercel.app` |
+| `COOKIE_SAMESITE` | `none` quando frontend e API estão em domínios diferentes (exige HTTPS; `COOKIE_SECURE` fica `true` em produção) |
+| `STORAGE_DRIVER` | `cloudinary` (+ `CLOUDINARY_*`). O disco da Vercel é efémero: com `local` os uploads perdem-se |
+| `CRON_SECRET` | Segredo aleatório. Ativa `GET /api/v1/internal/cron` (expirar encomendas, sincronizar promoções), chamado pelo Vercel Cron |
+| `EMAIL_PROVIDER` | `console` (único valor suportado) |
+
+`NODE_ENV` passa a `production` automaticamente na Vercel. As migrações não correm no deploy:
+aplique-as a partir da sua máquina com `DATABASE_URL=<url de produção> npm run prisma:deploy`
+(e `npm run db:seed` na primeira vez).
+
+Se a configuração estiver inválida, qualquer pedido devolve `500 SERVER_MISCONFIGURED` com a lista
+das variáveis em falta (só nomes, nunca valores).
+
+> O plano Hobby da Vercel só permite cron diário (`vercel.json` → `crons`). Encomendas por pagar
+> expiram com esse atraso; em planos pagos, mude o `schedule` para `*/5 * * * *`.
+
 ## Variáveis de ambiente
 
 Todas validadas no arranque (`src/config/env.ts`); ver `.env.example` com comentários.
