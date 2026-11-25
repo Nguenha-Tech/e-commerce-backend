@@ -69,6 +69,15 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(swaggerPlugin);
   await app.register(jobsPlugin);
 
+  // ---------------------------------------------------------------- raiz (só identifica a API; a loja é o frontend)
+  app.get('/', { schema: { hide: true }, config: { rateLimit: false } }, async () => ({
+    name: 'Electro Shop API',
+    status: 'ok',
+    api: '/api/v1',
+    health: '/health',
+    ...(env.DOCS_ENABLED ? { docs: '/docs' } : {}),
+  }));
+
   // ---------------------------------------------------------------- health
   app.get('/health', { schema: { tags: ['Health'], summary: 'Liveness' }, config: { rateLimit: false } }, async () => ({
     status: 'ok',
