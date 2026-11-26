@@ -35,7 +35,7 @@ const schema = z
     RATE_LIMIT_WINDOW: z.string().default('1 minute'),
     AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
 
-    STORAGE_DRIVER: z.enum(['local', 'cloudinary']).default('local'),
+    STORAGE_DRIVER: z.enum(['local', 'cloudinary', 'database']).default('local'),
     STORAGE_LOCAL_DIR: z.string().default('./storage/uploads'),
     STORAGE_PUBLIC_URL: z.string().url().default('http://localhost:3333/uploads'),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),

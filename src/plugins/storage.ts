@@ -3,7 +3,7 @@ import fastifyStatic from '@fastify/static';
 import { mkdir } from 'node:fs/promises';
 import fp from 'fastify-plugin';
 import { env } from '../config/env';
-import { createStorage, LocalStorageProvider } from '../modules/uploads/storage';
+import { createStorage, DatabaseStorageProvider, LocalStorageProvider } from '../modules/uploads/storage';
 
 export default fp(
   async (app) => {
@@ -33,6 +33,19 @@ export default fp(
         dotfiles: 'deny',
         maxAge: '30d',
         immutable: true,
+      });
+    }
+
+    // Storage na BD: servir a partir da tabela stored_files (as chaves nunca são reutilizadas).
+    if (storage instanceof DatabaseStorageProvider) {
+      app.get('/uploads/*', { schema: { hide: true } }, async (request, reply) => {
+        const key = (request.params as { '*': string })['*'];
+        const file = /^[a-z0-9][a-z0-9/_-]*\.[a-z0-9]+$/i.test(key) ? await storage.read(key) : null;
+        if (!file) return reply.callNotFound();
+        return reply
+          .header('content-type', file.contentType)
+          .header('cache-control', 'public, max-age=2592000, immutable')
+          .send(Buffer.from(file.data));
       });
     }
   },

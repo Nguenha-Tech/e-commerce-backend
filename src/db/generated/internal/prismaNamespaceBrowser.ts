@@ -103,7 +103,8 @@ export const ModelName = {
   AuditLog: 'AuditLog',
   StoreSetting: 'StoreSetting',
   WhatsAppConfig: 'WhatsAppConfig',
-  WhatsAppClickEvent: 'WhatsAppClickEvent'
+  WhatsAppClickEvent: 'WhatsAppClickEvent',
+  StoredFile: 'StoredFile'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1015,6 +1016,17 @@ export const WhatsAppClickEventScalarFieldEnum = {
 } as const
 
 export type WhatsAppClickEventScalarFieldEnum = (typeof WhatsAppClickEventScalarFieldEnum)[keyof typeof WhatsAppClickEventScalarFieldEnum]
+
+
+export const StoredFileScalarFieldEnum = {
+  key: 'key',
+  contentType: 'contentType',
+  sizeBytes: 'sizeBytes',
+  data: 'data',
+  createdAt: 'createdAt'
+} as const
+
+export type StoredFileScalarFieldEnum = (typeof StoredFileScalarFieldEnum)[keyof typeof StoredFileScalarFieldEnum]
 
 
 export const SortOrder = {

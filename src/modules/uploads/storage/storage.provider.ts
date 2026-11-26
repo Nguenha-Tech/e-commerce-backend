@@ -1,6 +1,6 @@
 /**
  * Abstração de armazenamento de ficheiros. A BD guarda apenas `key` + `url`.
- * Implementações: LocalStorageProvider, CloudinaryStorageProvider.
+ * Implementações: LocalStorageProvider, CloudinaryStorageProvider, DatabaseStorageProvider.
  * S3 / R2 / GCS / CDN implementam esta mesma interface.
  */
 export interface UploadInput {

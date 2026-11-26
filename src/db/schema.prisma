@@ -1360,3 +1360,15 @@ model WhatsAppClickEvent {
   @@index([productId, createdAt])
   @@map("whatsapp_click_events")
 }
+
+/// Ficheiros guardados na própria BD (STORAGE_DRIVER=database). Útil em testes/serverless
+/// sem storage externo; em produção a sério preferir Cloudinary/S3.
+model StoredFile {
+  key         String   @id @db.VarChar(255)
+  contentType String   @db.VarChar(60)
+  sizeBytes   Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  @@map("stored_files")
+}

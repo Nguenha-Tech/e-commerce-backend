@@ -283,3 +283,9 @@ export type WhatsAppConfig = Prisma.WhatsAppConfigModel
  * WhatsAppAnalytics — só metadados do clique, nunca o conteúdo das conversas.
  */
 export type WhatsAppClickEvent = Prisma.WhatsAppClickEventModel
+/**
+ * Model StoredFile
+ * Ficheiros guardados na própria BD (STORAGE_DRIVER=database). Útil em testes/serverless
+ * sem storage externo; em produção a sério preferir Cloudinary/S3.
+ */
+export type StoredFile = Prisma.StoredFileModel
